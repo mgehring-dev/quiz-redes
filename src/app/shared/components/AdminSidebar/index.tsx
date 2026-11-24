@@ -198,6 +198,9 @@ export const AdminSidebar = () => {
           ) : (
             <span>{isSaving ? "Salvando…" : isAdmin ? "Alterações salvas como padrão do site" : "Preferência salva"}</span>
           )}
+          <span className="build-version" title={`${__APP_VERSION__.mensagem}\n${__APP_VERSION__.branch} · ${__APP_VERSION__.ambiente}`}>
+            Versão {__APP_VERSION__.commit} · {new Date(__APP_VERSION__.geradoEm).toLocaleString("pt-BR", { dateStyle: "short", timeStyle: "short" })}
+          </span>
         </footer>
       </aside>
     </>

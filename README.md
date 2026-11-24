@@ -16,7 +16,42 @@ Atalhos no jogo: `1`–`4` escolhe a opção, `Enter` verifica / continua.
 
 ## Publicado
 
-https://quiz-redes-six.vercel.app — para atualizar: `npx.cmd vercel@latest deploy --prod --yes` (no PowerShell).
+https://quiz-redes-six.vercel.app
+
+### Deploy automático
+
+O projeto da Vercel está ligado a este repositório:
+
+| Branch | Ambiente | Endereço |
+| --- | --- | --- |
+| `main` | Produção | https://quiz-redes-six.vercel.app |
+| `dev` | Dev | https://quiz-redes-dev.vercel.app |
+| qualquer outra / pull request | Prévia | link próprio gerado pela Vercel (aparece no PR e no commit) |
+
+Fluxo sugerido: trabalhe na `dev`, confira em quiz-redes-dev, e quando estiver bom faça o merge da `dev` na `main` para ir para produção:
+
+```
+git switch dev
+# ...alterações...
+git add -A && git commit -m "mensagem" && git push        # → atualiza o ambiente de dev
+git switch main && git merge dev && git push               # → atualiza produção
+```
+
+Fora da produção aparece uma faixa no topo do site: **DEV** (branch dev), **PRÉVIA · branch** (outras) ou **LOCAL** (sua máquina).
+
+**Ver que está subindo**
+
+- No GitHub, ao lado do commit aparece uma bolinha: 🟡 construindo, ✅ publicado, ❌ falhou (clique nela para ver o log).
+- Pelo terminal: `npx.cmd vercel@latest ls` lista os deploys e o estado de cada um (Building, Ready, Error).
+- No painel: vercel.com → projeto **quiz-redes** → **Deployments**.
+
+**Ter certeza de que subiu**
+
+- Abra https://quiz-redes-six.vercel.app/version.json — mostra o `commit`, a `branch`, a mensagem e a data do build que está no ar. Compare com `git log -1 --format=%h`.
+- No site com `?admin`, o rodapé do menu de configurações mostra "Versão abc1234 · data".
+- No console do navegador (F12) aparece `Quiz Redes · versão abc1234 (production)`.
+
+Deploy manual (só se precisar): `npx.cmd vercel@latest deploy --prod --yes` (no PowerShell).
 
 Admin, enquanto não há login: abra o site com `?admin` (ex.: `https://quiz-redes-six.vercel.app/?admin`). Sem `?admin` no endereço, é sempre visitante (nada fica lembrado).
 Sem backend, as configurações ficam salvas só no navegador de quem alterou.

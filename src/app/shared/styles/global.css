@@ -1102,3 +1102,26 @@ button { font: inherit; color: inherit; }
 .footer .feedback { flex: 1; min-width: 0; }
 .alt.chosen.misplaced { background: var(--err-soft); border-color: color-mix(in srgb, var(--err) 55%, var(--border)); }
 .alt.misplaced .chosen-tag { color: var(--err-text); background: color-mix(in srgb, var(--err) 14%, transparent); }
+
+/* versão do build no rodapé do menu */
+.panel-foot { display: flex; flex-direction: column; gap: 4px; }
+.build-version { font-size: 11px; font-weight: 700; color: var(--text-3); opacity: 0.8; font-variant-numeric: tabular-nums; }
+
+/* faixa de ambiente (dev / prévia / local) — não aparece em produção */
+.env-badge { position: fixed; inset: 0 0 auto 0; z-index: 40; pointer-events: none; display: flex; justify-content: center; }
+.env-stripe { position: absolute; inset: 0 0 auto 0; height: 3px; background: var(--env-color); }
+.env-tag {
+  margin-top: 3px;
+  padding: 1px 10px 2px;
+  border-radius: 0 0 6px 6px;
+  background: var(--env-color);
+  color: #111;
+  font-size: 10px;
+  font-weight: 900;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+}
+.env-badge.dev { --env-color: #ffb020; }
+.env-badge.preview { --env-color: #a78bfa; }
+.env-badge.local { --env-color: #64748b; }
+.env-badge.local .env-tag { color: #fff; }
