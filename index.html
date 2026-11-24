@@ -1,0 +1,22 @@
+<!doctype html>
+<html lang="pt-BR" data-theme="dark" data-style="duolingo">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+    <title>Quiz Redes</title>
+    <script>
+      // aplica o último tema/estilo antes do React carregar (evita piscar)
+      try {
+        var ui = JSON.parse(localStorage.getItem("quiz-redes:ui") || "{}");
+        if (ui.tema) document.documentElement.dataset.theme = ui.tema;
+        if (ui.estilo) document.documentElement.dataset.style = ui.estilo;
+      } catch (e) {}
+    </script>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@500;700;800;900&family=Chakra+Petch:ital,wght@0,500;0,600;0,700;1,700&display=swap" rel="stylesheet" />
+  </head>
+  <body>
+    <div id="root"></div>
+    <script type="module" src="/src/index.tsx"></script>
+  </body>
+</html>

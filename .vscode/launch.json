@@ -1,0 +1,13 @@
+{
+  "version": "0.2.0",
+  "configurations": [
+    {
+      "name": "Quiz Redes (Chrome)",
+      "type": "chrome",
+      "request": "launch",
+      "url": "http://localhost:3010",
+      "webRoot": "${workspaceFolder}",
+      "preLaunchTask": "dev"
+    }
+  ]
+}

@@ -1,0 +1,224 @@
+/* =====================================================================
+   RESPONSIVIDADE
+   Tokens fluidos (clamp) que escalam de 320px até desktop sem saltos,
+   e ajustes por contexto: celular, celular deitado, tablet e toque.
+   Importado depois do global.css para prevalecer sobre os tamanhos fixos.
+   ===================================================================== */
+
+:root {
+  --page-x: clamp(14px, 3.2vw, 24px);
+  --fs-prompt: clamp(18px, 0.95rem + 1.15vw, 26px);
+  --fs-option: clamp(14px, 0.8rem + 0.3vw, 16px);
+  --fs-body: clamp(13px, 0.76rem + 0.22vw, 15px);
+  --fs-small: clamp(11.5px, 0.68rem + 0.15vw, 13px);
+  --fs-btn: clamp(13px, 0.74rem + 0.2vw, 15px);
+  --btn-h: clamp(44px, 2.4rem + 0.9vw, 52px);
+  --opt-pad-y: clamp(10px, 0.5rem + 0.5vw, 14px);
+  --opt-pad-x: clamp(12px, 0.6rem + 0.5vw, 16px);
+  --opt-gap: clamp(8px, 0.4rem + 0.45vw, 12px);
+  --key-size: clamp(24px, 1.35rem + 0.3vw, 28px);
+  --footer-h: 140px; /* substituído pela altura medida do rodapé */
+}
+
+html { -webkit-text-size-adjust: 100%; text-size-adjust: 100%; }
+button, a { -webkit-tap-highlight-color: transparent; touch-action: manipulation; }
+
+/* ---------- layout base ---------- */
+.app { padding: 0 var(--page-x); max-width: 760px; }
+.top { gap: clamp(8px, 1.6vw, 14px); padding: clamp(14px, 3vh, 26px) 0 6px; }
+.stage {
+  padding-top: clamp(14px, 3.5vh, 36px);
+  padding-bottom: calc(var(--footer-h) + 24px);
+}
+
+/* ---------- topo ---------- */
+.bar { height: clamp(12px, 0.6rem + 0.3vw, 16px); }
+[data-style="miami"] .bar { height: clamp(8px, 0.45rem + 0.2vw, 10px); }
+.chip { font-size: var(--fs-small); padding: 5px clamp(8px, 1.4vw, 12px); }
+.icon-btn { width: clamp(32px, 1.9rem + 0.3vw, 36px); height: clamp(32px, 1.9rem + 0.3vw, 36px); }
+
+/* ---------- pergunta ---------- */
+.tag { font-size: clamp(10.5px, 0.62rem + 0.12vw, 12px); }
+.counter { font-size: var(--fs-small); white-space: nowrap; }
+.prompt {
+  font-size: var(--fs-prompt);
+  margin: clamp(10px, 2vh, 18px) 0 clamp(16px, 3vh, 26px);
+  line-height: 1.3;
+  text-wrap: balance;
+}
+.prompt-hint { font-size: var(--fs-small); margin: -10px 0 clamp(14px, 2.4vh, 20px); }
+
+.options { gap: var(--opt-gap); }
+.option { padding: var(--opt-pad-y) var(--opt-pad-x); font-size: var(--fs-option); gap: clamp(10px, 1.8vw, 14px); }
+.key { width: var(--key-size); height: var(--key-size); font-size: calc(var(--key-size) * 0.46); }
+
+/* sequência */
+.sequence { gap: clamp(16px, 3vh, 26px); }
+.seq-answer {
+  min-height: clamp(60px, 9vh, 74px);
+  gap: clamp(6px, 1.4vw, 10px);
+  padding: clamp(8px, 1.6vh, 14px) 0 clamp(12px, 2vh, 18px);
+}
+.seq-slot + .seq-slot::before { margin-right: clamp(6px, 1.4vw, 10px); }
+.seq-slot.empty .seq-n { width: clamp(52px, 13vw, 92px); height: clamp(40px, 2.3rem + 0.5vw, 46px); }
+.seq-bank { gap: clamp(8px, 1.6vw, 10px); }
+.chip-btn {
+  min-height: clamp(40px, 2.3rem + 0.5vw, 46px);
+  padding: 6px clamp(10px, 1.8vw, 14px);
+  font-size: var(--fs-option);
+  gap: 8px;
+}
+
+/* ---------- rodapé ---------- */
+.footer-inner {
+  padding: clamp(12px, 2vh, 18px) var(--page-x) calc(clamp(14px, 2.4vh, 22px) + env(safe-area-inset-bottom));
+  gap: clamp(12px, 2.4vw, 20px);
+}
+.feedback { gap: clamp(10px, 2vw, 14px); }
+.badge { width: clamp(34px, 1.9rem + 0.8vw, 42px); height: clamp(34px, 1.9rem + 0.8vw, 42px); }
+.badge svg { width: 60%; height: 60%; }
+.feedback strong { font-size: clamp(16px, 0.9rem + 0.35vw, 19px); }
+.feedback .explain,
+.feedback .answer,
+.feedback.idle { font-size: var(--fs-body); }
+.feedback .hint { font-size: var(--fs-small); }
+
+.cta,
+[data-style] .cta {
+  height: var(--btn-h);
+  min-width: clamp(132px, 16vw, 170px);
+  padding: 0 clamp(16px, 2.4vw, 26px);
+  font-size: var(--fs-btn);
+}
+.explain-btn,
+[data-style] .explain-btn {
+  height: var(--btn-h);
+  padding: 0 clamp(12px, 1.8vw, 18px);
+  font-size: calc(var(--fs-btn) - 1px);
+}
+
+/* ---------- tela final ---------- */
+.trophy { width: clamp(80px, 18vw, 104px); height: clamp(80px, 18vw, 104px); border-radius: clamp(22px, 5vw, 28px); }
+.trophy svg { width: 54%; height: 54%; }
+.finished h1 { font-size: clamp(24px, 1.2rem + 2vw, 30px); }
+.finished .sub { font-size: var(--fs-body); max-width: 34ch; }
+.stats { width: 100%; max-width: 480px; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: clamp(8px, 2vw, 12px); }
+.stat-value { font-size: clamp(19px, 1rem + 1.4vw, 24px); }
+.stat-label { font-size: clamp(9.5px, 0.55rem + 0.2vw, 11px); }
+
+/* ---------- modal ---------- */
+.modal-head { padding: clamp(14px, 2.4vh, 20px) clamp(16px, 3vw, 22px) 12px; }
+.modal-head h2 { font-size: clamp(18px, 1rem + 0.6vw, 22px); }
+.modal-body { padding: clamp(14px, 2.2vh, 18px) clamp(16px, 3vw, 22px) 8px; }
+.modal-foot { padding: 12px clamp(16px, 3vw, 22px) calc(16px + env(safe-area-inset-bottom)); }
+.modal-question { font-size: clamp(14.5px, 0.85rem + 0.2vw, 16px); }
+.explain-block p { font-size: var(--fs-body); }
+.explain-block.why p { font-size: clamp(14.5px, 0.85rem + 0.25vw, 16px); }
+.alt-text strong { font-size: clamp(13px, 0.78rem + 0.12vw, 14px); }
+.alt-text > span { font-size: clamp(12.5px, 0.76rem + 0.1vw, 13.5px); }
+
+/* ---------- hover só onde existe mouse (sem "hover grudado" no toque) ---------- */
+.option.selected:hover:not(:disabled) { background: var(--brand-soft); }
+@media (hover: none) {
+  .icon-btn:hover,
+  .rail-btn:hover:not(.active) { background: transparent; }
+  .option:hover:not(:disabled):not(.selected),
+  .chip-btn:hover:not(:disabled):not(.placed),
+  .choice-card:hover:not(.on) { background: var(--surface); }
+  .cta:hover:not(:disabled),
+  [data-style="miami"] .cta:hover:not(:disabled) { transform: none; filter: none; }
+}
+
+/* ---------- tablet ---------- */
+@media (min-width: 601px) and (max-width: 1024px) {
+  .app { max-width: 680px; }
+  .footer-inner { max-width: 680px; }
+}
+/* até 900px o feedback ganha a largura toda e os botões descem para uma linha própria */
+@media (min-width: 601px) and (max-width: 900px) {
+  .footer-inner { flex-direction: column; align-items: stretch; }
+  .footer-actions { justify-content: flex-end; width: 100%; }
+  .footer-inner > .cta { align-self: flex-end; }
+}
+
+/* ---------- desktop: rodapé mais largo que a coluna, texto ao lado dos botões ---------- */
+@media (min-width: 901px) {
+  .footer-inner { max-width: min(1040px, 100%); }
+  .footer .feedback .explain { max-width: 62ch; }
+}
+@media (min-width: 1440px) {
+  .app { max-width: 820px; }
+  .footer-inner { max-width: 1120px; }
+}
+
+/* ---------- celular ---------- */
+@media (max-width: 600px) {
+  /* o trilho do menu vira um botão flutuante, sem roubar largura */
+  :root.has-rail { --rail-w: 0px; }
+  .rail {
+    position: absolute; /* rola junto com a página, não fica por cima do conteúdo */
+    inset: calc(14px + env(safe-area-inset-top)) auto auto 4px;
+    width: auto;
+    padding: 0;
+    border: 0;
+    background: transparent;
+    backdrop-filter: none;
+  }
+  .rail-btn { width: 32px; height: 32px; opacity: 0.55; }
+  .rail-badge { display: none; }
+  :root.has-rail .top { padding-left: 28px; }
+  .panel { left: 0; width: min(360px, 92vw); }
+  :root:has(.panel.open) .rail { opacity: 0; pointer-events: none; }
+
+  .stage { padding-bottom: calc(var(--footer-h) + 16px); }
+  .footer-inner { flex-direction: column; align-items: stretch; }
+  .footer-actions { flex-direction: column-reverse; align-items: stretch; width: 100%; gap: 8px; }
+  .cta,
+  [data-style] .cta { width: 100%; min-width: 0; }
+  .explain-btn,
+  [data-style] .explain-btn { justify-content: center; height: 42px; }
+
+  /* no rodapé só o essencial; a explicação completa está no modal */
+  .feedback .explain,
+  .feedback .answer {
+    display: -webkit-box;
+    -webkit-line-clamp: 3;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+  }
+  .feedback .hint { margin-top: 2px; }
+
+  .seq-bank { justify-content: flex-start; }
+}
+
+/* telas bem estreitas */
+@media (max-width: 380px) {
+  .counter-label { display: none; }
+  .chip svg { width: 14px; height: 14px; }
+  .meta { gap: 6px; }
+  .feedback .explain { -webkit-line-clamp: 2; }
+}
+
+/* ---------- celular deitado / telas baixas ---------- */
+@media (max-height: 560px) and (orientation: landscape) {
+  .top { padding-top: 10px; }
+  .stage { padding-top: 10px; }
+  .prompt { margin: 8px 0 12px; }
+  .footer-inner {
+    flex-direction: row;
+    align-items: center;
+    padding-top: 10px;
+    padding-bottom: calc(10px + env(safe-area-inset-bottom));
+  }
+  .footer-actions { flex-direction: row; width: auto; }
+  .cta,
+  [data-style] .cta { width: auto; min-width: 130px; }
+  .feedback .explain,
+  .feedback .hint { display: none; }
+  .modal-root { align-items: center; padding: 10px; }
+  .modal { max-height: 96vh; border-radius: 14px; }
+}
+
+/* checkbox segue a cor do resultado depois de corrigir */
+.option.selected.wrong .key.box { background: var(--err); border-color: var(--err); color: var(--ink); }
+.option.selected.right .key.box { background: var(--ok); border-color: var(--ok); color: var(--ink); }

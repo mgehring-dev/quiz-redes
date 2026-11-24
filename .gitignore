@@ -1,0 +1,16 @@
+# dependências e build
+node_modules
+dist
+
+# deploy / ferramentas locais
+.vercel
+.claude
+
+# variáveis locais (podem ter segredos)
+.env.local
+.env.*.local
+
+# sistema / editor
+.DS_Store
+Thumbs.db
+*.log
