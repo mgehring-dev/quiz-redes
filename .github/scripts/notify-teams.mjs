@@ -1,5 +1,5 @@
 // Posta no Microsoft Teams o resultado de um deploy da Vercel.
-// Chamado pela Action .github/workflows/notify-teams.yml (evento deployment_status).
+// Chamado pela Action .github/workflows/notify-teams.yml depois que o deploy do commit termina.
 // O webhook vem do secret TEAMS_WEBHOOK_URL (Teams → Workflows → "Send webhook alerts to a chat/channel").
 
 const {

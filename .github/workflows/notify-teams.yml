@@ -1,16 +1,24 @@
 name: Avisar no Teams
 
-# A Vercel publica o status de cada deploy no GitHub (deployment_status).
-# Quando o deploy termina (sucesso ou falha), posta um cartão no Teams.
-on: deployment_status
+# A cada push em main ou dev: espera a Vercel terminar o deploy desse commit
+# (acompanhando o status "Vercel" do commit) e posta UMA mensagem no Teams
+# com o resultado final. Nada é enviado enquanto o deploy está em andamento.
+on:
+  push:
+    branches: [main, dev]
 
 permissions:
   contents: read
+  statuses: read
+
+concurrency:
+  group: notify-teams-${{ github.ref_name }}
+  cancel-in-progress: true
 
 jobs:
   notify:
-    if: contains(fromJSON('["success","failure","error"]'), github.event.deployment_status.state)
     runs-on: ubuntu-latest
+    timeout-minutes: 20
     steps:
       - uses: actions/checkout@v4
         with:
@@ -20,25 +28,34 @@ jobs:
         with:
           node-version: 20
 
-      - name: Buscar dados do commit
-        id: commit
+      - name: Esperar o deploy da Vercel terminar
+        id: vercel
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
-          {
-            echo "message<<EOF"
-            gh api "repos/${{ github.repository }}/commits/${{ github.event.deployment.sha }}" --jq '.commit.message'
-            echo "EOF"
-          } >> "$GITHUB_OUTPUT"
+          for i in $(seq 1 90); do
+            status=$(gh api "repos/${{ github.repository }}/commits/${{ github.sha }}/statuses" \
+              --jq '[.[] | select(.context | startswith("Vercel"))][0] // empty')
+            state=$(echo "$status" | jq -r '.state // empty')
+            if [ -n "$state" ] && [ "$state" != "pending" ]; then
+              echo "state=$state" >> "$GITHUB_OUTPUT"
+              echo "log_url=$(echo "$status" | jq -r '.target_url // empty')" >> "$GITHUB_OUTPUT"
+              echo "Deploy terminou: $state"
+              exit 0
+            fi
+            sleep 10
+          done
+          echo "::warning::A Vercel não terminou o deploy em 15 minutos."
+          echo "state=timeout" >> "$GITHUB_OUTPUT"
 
       - name: Postar no Teams
+        if: steps.vercel.outputs.state != 'timeout'
         env:
           TEAMS_WEBHOOK_URL: ${{ secrets.TEAMS_WEBHOOK_URL }}
-          STATE: ${{ github.event.deployment_status.state }}
-          REF: ${{ github.event.deployment.ref }}
-          SHA: ${{ github.event.deployment.sha }}
-          ENV_NAME: ${{ github.event.deployment.environment }}
-          TARGET_URL: ${{ github.event.deployment_status.environment_url || github.event.deployment_status.target_url }}
-          LOG_URL: ${{ github.event.deployment_status.log_url || github.event.deployment_status.target_url }}
-          COMMIT_MESSAGE: ${{ steps.commit.outputs.message }}
+          STATE: ${{ steps.vercel.outputs.state }}
+          REF: ${{ github.ref_name }}
+          SHA: ${{ github.sha }}
+          ENV_NAME: ${{ github.ref_name == 'main' && 'Production' || 'Preview' }}
+          LOG_URL: ${{ steps.vercel.outputs.log_url }}
+          COMMIT_MESSAGE: ${{ github.event.head_commit.message }}
         run: node .github/scripts/notify-teams.mjs
