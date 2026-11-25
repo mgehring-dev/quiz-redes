@@ -39,6 +39,8 @@ git switch main && git merge dev && git push               # → atualiza produ�
 
 Fora da produção aparece uma faixa no topo do site: **DEV** (branch dev), **PRÉVIA · branch** (outras) ou **LOCAL** (sua máquina).
 
+**Acesso:** a produção é pública. Dev e prévias são protegidos pela Vercel Authentication — só abrem para quem está logado na conta Vercel do projeto. Para conferir pelo terminal sem navegador: `npx.cmd vercel@latest curl /version.json --deployment https://quiz-redes-dev.vercel.app`.
+
 **Ver que está subindo**
 
 - No GitHub, ao lado do commit aparece uma bolinha: 🟡 construindo, ✅ publicado, ❌ falhou (clique nela para ver o log).
