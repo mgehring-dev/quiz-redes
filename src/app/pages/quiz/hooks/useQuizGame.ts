@@ -4,7 +4,7 @@ import { usePostAnswer } from "./useQuiz";
 import { shuffle } from "../../../shared/utils/shuffle";
 import { errorResponse } from "../../../shared/utils/errorResponse";
 import { playClick, playCorrect, playFinish, playWrong } from "../../../shared/utils/sounds";
-import type { IAnswerResult, IQuestion } from "../../../shared/services/api/quiz";
+import { isSequencia, type IAnswerResult, type IQuestion } from "../../../shared/services/api/quiz";
 
 export type TGameStatus = "answering" | "checking" | "answered" | "finished";
 
@@ -58,6 +58,8 @@ const positions = (order: string[], ids: string[]) => ids.map((id) => order.inde
  */
 function freshOrder(q: IQuestion, last?: ILastView): string[] {
   const ids = q.opcoes.map((o) => o.id);
+  // verdadeiro ou falso: sempre na ordem "Verdadeiro, Falso"
+  if (q.tipo === "verdadeiro_falso") return ids;
   const original = ids.join(",");
   let best = shuffle(ids);
   for (let i = 0; i < 40; i++) {
@@ -66,7 +68,7 @@ function freshOrder(q: IQuestion, last?: ILastView): string[] {
     const differsFromLast =
       !last ||
       (candidate.join(",") !== last.order.join(",") &&
-        (q.tipo === "ordenar" || positions(candidate, last.corretas) !== positions(last.order, last.corretas)));
+        (isSequencia(q.tipo) || positions(candidate, last.corretas) !== positions(last.order, last.corretas)));
     if (differsFromOriginal && differsFromLast) return candidate;
     best = candidate;
   }
@@ -107,7 +109,7 @@ function reducer(questions: IQuestion[]) {
       case "pick": {
         if (s.status !== "answering" || !current) return s;
         let selected = s.selected;
-        if (current.tipo === "unica") selected = [a.optionId];
+        if (current.tipo === "unica" || current.tipo === "verdadeiro_falso") selected = [a.optionId];
         else if (current.tipo === "multipla")
           selected = s.selected.includes(a.optionId) ? s.selected.filter((id) => id !== a.optionId) : [...s.selected, a.optionId];
         else if (!s.selected.includes(a.optionId) && s.selected.length < (current.qtdItens ?? Infinity))
@@ -182,7 +184,7 @@ export function useQuizGame(questions: IQuestion[]) {
   const canCheck =
     !!current &&
     state.status === "answering" &&
-    (current.tipo === "ordenar" ? state.selected.length === current.qtdItens : state.selected.length > 0);
+    (isSequencia(current.tipo) ? state.selected.length === current.qtdItens : state.selected.length > 0);
 
   const pick = useCallback(
     (optionId: string) => {

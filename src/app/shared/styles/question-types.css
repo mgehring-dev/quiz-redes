@@ -1,0 +1,188 @@
+/* =====================================================================
+   Tipos de pergunta novos, nível de dificuldade e tela de escolha de nível
+   ===================================================================== */
+
+/* ---------- etiqueta de nível ---------- */
+.level-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 3px 9px;
+  border-radius: 6px;
+  font-family: var(--font-display);
+  font-size: clamp(10.5px, 0.62rem + 0.12vw, 12px);
+  font-weight: 800;
+  letter-spacing: 0.03em;
+  text-transform: uppercase;
+  border: 1px solid transparent;
+}
+.level-pill::before { content: ""; width: 6px; height: 6px; border-radius: 50%; background: currentColor; }
+.level-pill.facil { color: var(--ok-text); background: var(--ok-soft); border-color: color-mix(in srgb, var(--ok) 30%, transparent); }
+.level-pill.dificil { color: var(--fire); background: color-mix(in srgb, var(--fire) 12%, transparent); border-color: color-mix(in srgb, var(--fire) 35%, transparent); }
+
+/* ---------- verdadeiro ou falso ---------- */
+.tf { display: grid; grid-template-columns: 1fr 1fr; gap: var(--opt-gap, 12px); }
+.tf-option {
+  flex-direction: column;
+  justify-content: center;
+  gap: 8px;
+  min-height: clamp(96px, 16vh, 132px);
+  text-align: center;
+  position: relative;
+}
+.tf-option .key { position: absolute; top: 10px; right: 10px; width: 22px; height: 22px; font-size: 11px; }
+.tf-icon {
+  display: grid;
+  place-items: center;
+  width: clamp(36px, 2rem + 1vw, 46px);
+  height: clamp(36px, 2rem + 1vw, 46px);
+  border-radius: 50%;
+  font-size: clamp(18px, 1rem + 0.6vw, 22px);
+  font-weight: 900;
+  border: 2px solid var(--border);
+  color: var(--text-3);
+  transition: inherit;
+}
+.tf-text { font-family: var(--font-display); font-size: clamp(16px, 0.9rem + 0.4vw, 19px); font-weight: 900; }
+.tf-true.selected .tf-icon { border-color: var(--brand); color: var(--brand); }
+.tf-false.selected .tf-icon { border-color: var(--brand); color: var(--brand); }
+.tf-option.right .tf-icon { background: var(--ok); border-color: var(--ok); color: var(--ink); }
+.tf-option.wrong .tf-icon { background: var(--err); border-color: var(--err); color: var(--ink); }
+
+/* ---------- complete a frase ---------- */
+.fill-prompt { line-height: 1.75; }
+.blank {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  vertical-align: baseline;
+  margin: 0 4px;
+  border-radius: 8px;
+  font-family: var(--font);
+  font-size: 0.78em;
+  font-weight: 800;
+  line-height: 1.2;
+}
+.blank.empty {
+  min-width: clamp(64px, 12vw, 96px);
+  padding: 4px 10px;
+  border: 2px dashed var(--border-strong);
+  color: var(--text-3);
+  font-size: 0.6em;
+}
+.blank.empty.next { border-color: var(--brand); color: var(--brand); }
+.blank.filled {
+  padding: 4px 12px;
+  border: 2px solid var(--brand);
+  border-bottom-width: 3px;
+  background: var(--brand-soft);
+  color: var(--text);
+  cursor: pointer;
+  animation: rise 0.2s cubic-bezier(0.22, 1, 0.36, 1);
+}
+.blank.filled:disabled { cursor: default; }
+.blank.filled.right { border-color: var(--ok); background: var(--ok-soft); }
+.blank.filled.wrong { border-color: var(--err); background: var(--err-soft); animation: shake 0.4s; }
+.fill-prompt + .prompt-hint + .seq-bank { margin-top: 6px; }
+
+/* ---------- associe os pares ---------- */
+.match { display: grid; gap: clamp(16px, 3vh, 24px); }
+.match-rows { list-style: none; margin: 0; padding: 0; display: grid; gap: var(--opt-gap, 10px); }
+.match-row {
+  display: grid;
+  grid-template-columns: minmax(70px, 34%) auto 1fr;
+  align-items: center;
+  gap: clamp(8px, 1.6vw, 12px);
+}
+.match-label {
+  padding: 10px 12px;
+  border-radius: var(--radius);
+  background: var(--surface-2);
+  border: 1px solid var(--border);
+  font-family: var(--font-display);
+  font-size: var(--fs-option, 15px);
+  font-weight: 800;
+  line-height: 1.3;
+}
+.match-arrow { color: var(--text-3); font-weight: 900; }
+.match-slot { width: 100%; justify-content: flex-start; text-align: left; }
+.match-slot.empty {
+  display: flex;
+  align-items: center;
+  min-height: clamp(40px, 2.3rem + 0.5vw, 46px);
+  padding: 0 12px;
+  border-radius: var(--radius);
+  border: 2px dashed var(--border);
+  color: var(--text-3);
+  font-size: var(--fs-small, 13px);
+  font-weight: 700;
+}
+.match-row.next .match-slot.empty { border-color: var(--brand); color: var(--brand); }
+.match-slot.right { border-color: var(--ok); background: var(--ok-soft); }
+.match-slot.wrong { border-color: var(--err); background: var(--err-soft); animation: shake 0.4s; }
+
+/* ---------- tela de escolha de nível ---------- */
+.level-screen { justify-content: center; padding-top: clamp(28px, 8vh, 72px); padding-bottom: 40px; }
+.level-head { text-align: center; margin-bottom: clamp(20px, 4vh, 32px); }
+.level-kicker { font-size: var(--fs-small, 12px); font-weight: 900; letter-spacing: 0.08em; text-transform: uppercase; color: var(--tag); }
+.level-head h1 { margin: 6px 0 6px; font-family: var(--font-display); font-size: clamp(24px, 1.2rem + 2vw, 34px); font-weight: 900; }
+.level-head p { margin: 0; color: var(--text-2); font-size: var(--fs-body, 15px); }
+
+.level-list { display: grid; gap: var(--opt-gap, 12px); width: 100%; max-width: 560px; margin: 0 auto; }
+.level-card {
+  display: flex;
+  align-items: center;
+  gap: clamp(12px, 2vw, 16px);
+  width: 100%;
+  padding: clamp(14px, 2vh, 18px) clamp(14px, 2vw, 18px);
+  text-align: left;
+  border-radius: var(--radius);
+  border: 2px solid var(--border);
+  border-bottom-width: 4px;
+  background: var(--surface);
+  cursor: pointer;
+  animation: rise 0.35s cubic-bezier(0.22, 1, 0.36, 1) both;
+  transition: background 0.15s, border-color 0.15s, transform 0.08s;
+}
+.level-card:hover { background: var(--surface-2); border-color: var(--border-strong); }
+.level-card:active { transform: translateY(2px); border-bottom-width: 2px; margin-bottom: 2px; }
+.level-card:focus-visible { outline: 2px solid var(--brand); outline-offset: 2px; }
+.level-text { display: flex; flex-direction: column; gap: 3px; flex: 1; min-width: 0; }
+.level-text strong { font-family: var(--font-display); font-size: clamp(17px, 0.95rem + 0.4vw, 20px); font-weight: 900; }
+.level-text span { color: var(--text-2); font-size: var(--fs-body, 14px); line-height: 1.4; }
+.level-text small { color: var(--text-3); font-size: var(--fs-small, 12px); font-weight: 800; }
+
+.level-bars { display: flex; align-items: flex-end; gap: 3px; height: 28px; flex: none; }
+.level-bars i { width: 7px; border-radius: 3px; background: var(--border); }
+.level-bars i:nth-child(1) { height: 10px; }
+.level-bars i:nth-child(2) { height: 18px; }
+.level-bars i:nth-child(3) { height: 26px; }
+.level-card.easy .level-bars i.on { background: var(--ok); }
+.level-card.hard .level-bars i.on { background: var(--fire); }
+.level-card.all .level-bars i.on { background: var(--brand); }
+
+.finished-actions { display: flex; flex-direction: column; align-items: center; gap: 12px; }
+
+/* ---------- estilo Miami ---------- */
+[data-style="miami"] .level-card { border-width: 1px; border-bottom-width: 1px; }
+[data-style="miami"] .level-card:active { border-bottom-width: 1px; margin-bottom: 0; transform: scale(0.99); }
+[data-style="miami"] .level-card.hard:hover { box-shadow: 0 0 22px color-mix(in srgb, var(--fire) 25%, transparent); }
+[data-style="miami"] .level-card.easy:hover { box-shadow: 0 0 22px color-mix(in srgb, var(--ok) 25%, transparent); }
+[data-style="miami"] .level-card.all:hover { box-shadow: 0 0 22px color-mix(in srgb, var(--brand) 25%, transparent); }
+[data-style="miami"] .level-head h1 { background: var(--bar); -webkit-background-clip: text; background-clip: text; color: transparent; }
+[data-style="miami"] .blank.filled { border-width: 1px; }
+[data-style="miami"] .match-slot.empty,
+[data-style="miami"] .blank.empty { border-width: 1px; }
+
+/* ---------- telas pequenas ---------- */
+@media (max-width: 600px) {
+  .match-row { grid-template-columns: 1fr; gap: 6px; }
+  .match-arrow { display: none; }
+  .match-label { padding: 8px 10px; }
+  .level-card .key { display: none; }
+}
+@media (hover: none) {
+  .level-card:hover { background: var(--surface); border-color: var(--border); }
+}
+
+.blank-wrap { white-space: nowrap; }

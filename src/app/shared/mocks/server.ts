@@ -1,6 +1,7 @@
 import { AxiosError, AxiosResponse, InternalAxiosRequestConfig } from "axios";
 
-import { answerIndexes, db, optionId } from "./db";
+import { answerIndexes, db, nivel, optionId } from "./db";
+import { isSequencia } from "../services/api/quiz";
 import { Environment } from "../environment";
 import type { IAnswerResult, IPostAnswer } from "../services/api/quiz";
 import type { ISettings, TEstilo, TMenuVisivelPara, TTema } from "../services/api/settings";
@@ -83,15 +84,15 @@ const routes: Record<string, Handler> = {
     const tipo = question.tipo ?? "unica";
     const idOpcoesCorretas = answerIndexes(question).map((i) => optionId(question.id, i));
     let correta: boolean;
-    if (tipo === "ordenar") {
-      // sequência exata
+    if (isSequencia(tipo)) {
+      // ordenar, lacuna e associar: sequência exata
       correta = enviados.length === idOpcoesCorretas.length && enviados.every((id, i) => id === idOpcoesCorretas[i]);
     } else {
-      // mesmo conjunto, em qualquer ordem
+      // unica, verdadeiro_falso e multipla: mesmo conjunto, em qualquer ordem
       const set = new Set(enviados);
       correta = set.size === idOpcoesCorretas.length && idOpcoesCorretas.every((id) => set.has(id));
     }
-    const xpGanho = correta ? Environment.XP_POR_ACERTO : 0;
+    const xpGanho = correta ? (nivel(question) === "dificil" ? Environment.XP_POR_ACERTO_DIFICIL : Environment.XP_POR_ACERTO) : 0;
 
     const profile = db.getProfile();
     const saved = db.saveProfile({

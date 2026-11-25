@@ -3,6 +3,7 @@ import { createRoot } from "react-dom/client";
 
 import { App } from "./app/App";
 import "./app/shared/styles/global.css";
+import "./app/shared/styles/question-types.css";
 import "./app/shared/styles/responsive.css";
 
 // versão em produção visível no console (F12)

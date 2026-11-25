@@ -1,10 +1,16 @@
 import { questions as unicas } from "./data/questions";
 import { questionsListas } from "./data/questionsListas";
 import { explanations } from "./data/explanations";
-import type { IExplanation, IProfile, IQuestion } from "../services/api/quiz";
+import { explanationsNovas } from "./data/explanationsNovas";
+import { questionsNovas } from "./data/questionsNovas";
+import { isSequencia, type IExplanation, type IProfile, type IQuestion, type TDificuldade } from "../services/api/quiz";
 import type { IQuestionSeed } from "./types";
 
-const questions: IQuestionSeed[] = [...unicas, ...questionsListas];
+/** nível das perguntas que não declaram `dificuldade` no cadastro */
+const DIFICEIS_PADRAO = new Set([5, 8, 10, 12, 13, 15, 16, 18, 19, 20, 26, 28, 30, 31, 34, 35, 36]);
+export const nivel = (q: IQuestionSeed): TDificuldade => q.dificuldade ?? (DIFICEIS_PADRAO.has(q.id) ? "dificil" : "facil");
+
+const questions: IQuestionSeed[] = [...unicas, ...questionsListas, ...questionsNovas];
 
 /** gabarito sempre como lista de índices */
 export const answerIndexes = (q: IQuestionSeed) => (Array.isArray(q.answer) ? q.answer : [q.answer]);
@@ -28,11 +34,13 @@ export const db = {
       return {
         id: q.id,
         tipo,
+        dificuldade: nivel(q),
         topico: q.topic,
         enunciado: q.prompt,
         opcoes: q.options.map((texto, i) => ({ id: optionId(q.id, i), texto })),
-        // na sequência o aluno precisa saber quantos blocos montar (não revela quais)
-        ...(tipo === "ordenar" ? { qtdItens: answerIndexes(q).length } : {}),
+        // nos tipos de sequência o aluno precisa saber quantos blocos montar (não revela quais)
+        ...(isSequencia(tipo) ? { qtdItens: answerIndexes(q).length } : {}),
+        ...(q.rotulos ? { rotulos: q.rotulos } : {}),
       };
     });
   },
@@ -43,7 +51,7 @@ export const db = {
 
   getExplanation(id: number): IExplanation | null {
     const q = db.findQuestion(id);
-    const e = explanations[id];
+    const e = explanations[id] ?? explanationsNovas[id];
     if (!q || !e) return null;
     const corretas = answerIndexes(q);
     let alternativas = q.options.map((texto, i) => ({
@@ -51,10 +59,10 @@ export const db = {
       texto,
       correta: corretas.includes(i),
       motivo: e.motivos[i] ?? "",
-      ...(q.tipo === "ordenar" && corretas.includes(i) ? { posicao: corretas.indexOf(i) + 1 } : {}),
+      ...(isSequencia(q.tipo ?? "unica") && corretas.includes(i) ? { posicao: corretas.indexOf(i) + 1 } : {}),
     }));
-    // na sequência: passos na ordem certa e os blocos que sobram no fim
-    if (q.tipo === "ordenar") alternativas = [...alternativas].sort((a, b) => (a.posicao ?? 99) - (b.posicao ?? 99));
+    // nos tipos de sequência: na ordem certa e os blocos que sobram no fim
+    if (isSequencia(q.tipo ?? "unica")) alternativas = [...alternativas].sort((a, b) => (a.posicao ?? 99) - (b.posicao ?? 99));
     return { idPergunta: q.id, porQue: e.porQue, conceito: e.conceito, alternativas, dica: e.dica };
   },
 

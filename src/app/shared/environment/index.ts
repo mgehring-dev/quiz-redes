@@ -18,4 +18,8 @@ export const Environment = {
    * XP ganho a cada resposta correta
    */
   XP_POR_ACERTO: 10,
+  /**
+   * XP ganho a cada resposta correta numa pergunta difícil
+   */
+  XP_POR_ACERTO_DIFICIL: 20,
 };

@@ -18,7 +18,10 @@ interface IQuestionCardProps {
 const HINTS: Record<IQuestion["tipo"], string | null> = {
   unica: null,
   multipla: "Marque todas as corretas",
+  verdadeiro_falso: "Verdadeiro ou falso?",
   ordenar: "Toque nos blocos na ordem certa",
+  lacuna: "Complete a frase tocando nos blocos",
+  associar: "Toque nos blocos para ligar cada item ao seu par",
 };
 
 export const QuestionCard = (props: IQuestionCardProps) => {
@@ -29,6 +32,7 @@ export const QuestionCard = (props: IQuestionCardProps) => {
     <main className="stage">
       <div className="meta">
         <span className="tag">{question.topico}</span>
+        <span className={`level-pill ${question.dificuldade}`}>{question.dificuldade === "dificil" ? "Difícil" : "Fácil"}</span>
         {isRevisao && (
           <span className="tag retry">
             <RepeatIcon /> Revisão
@@ -39,11 +43,148 @@ export const QuestionCard = (props: IQuestionCardProps) => {
         </span>
       </div>
 
-      <h1 className="prompt">{question.enunciado}</h1>
+      {question.tipo === "lacuna" ? <FillBlanksPrompt {...props} /> : <h1 className="prompt">{question.enunciado}</h1>}
       {hint && <p className="prompt-hint">{hint}</p>}
 
-      {question.tipo === "ordenar" ? <SequenceBuilder {...props} /> : <OptionList {...props} />}
+      {question.tipo === "ordenar" && <SequenceBuilder {...props} />}
+      {question.tipo === "lacuna" && <Bank {...props} />}
+      {question.tipo === "associar" && <MatchPairs {...props} />}
+      {question.tipo === "verdadeiro_falso" && <TrueFalse {...props} />}
+      {(question.tipo === "unica" || question.tipo === "multipla") && <OptionList {...props} />}
     </main>
+  );
+};
+
+/** tom de cada bloco já colocado, depois de corrigir */
+const slotTone = (result: IAnswerResult | null, status: TGameStatus, index: number, id: string) =>
+  status === "answered" && result ? (result.idOpcoesCorretas[index] === id ? "right" : "wrong") : "";
+
+/** Banco de blocos (compartilhado por sequência, lacunas e associação) */
+const Bank = ({ question, order, selected, status, onPick }: IQuestionCardProps) => {
+  const locked = status !== "answering";
+  const textById = Object.fromEntries(question.opcoes.map((o) => [o.id, o.texto]));
+  return (
+    <div className="seq-bank" aria-label="Blocos disponíveis">
+      {order.map((id, pos) => {
+        const used = selected.includes(id);
+        return (
+          <span key={id} className="bank-cell" style={{ animationDelay: `${60 + pos * 35}ms` }}>
+            <button className={`chip-btn ${used ? "used" : ""}`} onClick={() => onPick(id)} disabled={locked || used} aria-hidden={used}>
+              <span className="chip-key">{pos + 1}</span>
+              {textById[id]}
+            </button>
+          </span>
+        );
+      })}
+    </div>
+  );
+};
+
+/** Complete a frase: o enunciado vira texto com lacunas preenchidas pelos blocos */
+const FillBlanksPrompt = ({ question, selected, result, status, onUnplace }: IQuestionCardProps) => {
+  const locked = status !== "answering";
+  const textById = Object.fromEntries(question.opcoes.map((o) => [o.id, o.texto]));
+  const raw = question.enunciado.split("___");
+  // a pontuação logo depois de uma lacuna fica grudada nela (não quebra linha sozinha)
+  const lead = raw.map((p, i) => (i === 0 ? "" : (p.match(/^[,.;:!?]+/)?.[0] ?? "")));
+  const parts = raw.map((p, i) => p.slice(lead[i].length));
+
+  return (
+    <h1 className="prompt fill-prompt">
+      {parts.map((part, i) => (
+        <span key={i}>
+          {part}
+          {i < parts.length - 1 && <span className="blank-wrap">{renderBlank(i)}{lead[i + 1]}</span>}
+        </span>
+      ))}
+    </h1>
+  );
+
+  function renderBlank(i: number) {
+    return selected[i] ? (
+      <button
+        className={`blank filled ${slotTone(result, status, i, selected[i])}`}
+        onClick={() => onUnplace(i)}
+        disabled={locked}
+        title="Remover"
+      >
+        {textById[selected[i]]}
+      </button>
+    ) : (
+      <span className={`blank empty ${selected.length === i ? "next" : ""}`} aria-label={`lacuna ${i + 1}`}>
+        {i + 1}
+      </span>
+    );
+  }
+};
+
+/** Associe os pares: cada rótulo da esquerda recebe um bloco do banco */
+const MatchPairs = (props: IQuestionCardProps) => {
+  const { question, selected, result, status, onUnplace } = props;
+  const locked = status !== "answering";
+  const textById = Object.fromEntries(question.opcoes.map((o) => [o.id, o.texto]));
+
+  return (
+    <div className="match">
+      <ol className="match-rows">
+        {(question.rotulos ?? []).map((rotulo, i) => {
+          const id = selected[i];
+          return (
+            <li key={rotulo} className={`match-row ${!id && selected.length === i ? "next" : ""}`}>
+              <span className="match-label">{rotulo}</span>
+              <span className="match-arrow" aria-hidden>
+                →
+              </span>
+              {id ? (
+                <button className={`chip-btn placed match-slot ${slotTone(result, status, i, id)}`} onClick={() => onUnplace(i)} disabled={locked}>
+                  {textById[id]}
+                </button>
+              ) : (
+                <span className="match-slot empty">toque num bloco</span>
+              )}
+            </li>
+          );
+        })}
+      </ol>
+      <Bank {...props} />
+    </div>
+  );
+};
+
+/** Verdadeiro ou falso: dois botões grandes */
+const TrueFalse = ({ question, order, selected, result, status, onPick }: IQuestionCardProps) => {
+  const answered = status === "answered" && !!result;
+  const locked = status !== "answering";
+  const textById = Object.fromEntries(question.opcoes.map((o) => [o.id, o.texto]));
+
+  return (
+    <div className="tf" role="radiogroup">
+      {order.map((id, pos) => {
+        const isSelected = selected.includes(id);
+        const isRight = answered && result!.idOpcoesCorretas.includes(id);
+        const isWrong = answered && isSelected && !isRight;
+        const cls = [
+          "option tf-option",
+          pos === 0 ? "tf-true" : "tf-false",
+          isSelected && "selected",
+          isRight && "right",
+          isWrong && "wrong",
+          answered && !isRight && !isSelected && "dim",
+          status === "checking" && isSelected && "pending",
+        ]
+          .filter(Boolean)
+          .join(" ");
+        return (
+          <button key={id} className={cls} onClick={() => onPick(id)} disabled={locked} role="radio" aria-checked={isSelected}>
+            <span className="tf-icon" aria-hidden>
+              {pos === 0 ? "✓" : "✕"}
+            </span>
+            <span className="tf-text">{textById[id]}</span>
+            <span className="key">{pos + 1}</span>
+          </button>
+        );
+      })}
+    </div>
   );
 };
 
@@ -125,19 +266,7 @@ const SequenceBuilder = ({ question, order, selected, result, status, onPick, on
         })}
       </ol>
 
-      <div className="seq-bank" aria-label="Blocos disponíveis">
-        {order.map((id, pos) => {
-          const used = selected.includes(id);
-          return (
-            <span key={id} className="bank-cell" style={{ animationDelay: `${60 + pos * 35}ms` }}>
-              <button className={`chip-btn ${used ? "used" : ""}`} onClick={() => onPick(id)} disabled={locked || used} aria-hidden={used}>
-                <span className="chip-key">{pos + 1}</span>
-                {textById[id]}
-              </button>
-            </span>
-          );
-        })}
-      </div>
+      <Bank question={question} order={order} selected={selected} result={result} status={status} onPick={onPick} onUnplace={onUnplace} isRevisao={false} mastered={0} total={0} />
     </div>
   );
 };

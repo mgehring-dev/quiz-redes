@@ -8,9 +8,10 @@ interface IFinishedScreenProps {
   bestStreak: number;
   total: number;
   onRestart: () => void;
+  onChangeLevel: () => void;
 }
 
-export const FinishedScreen = ({ xp, hits, misses, bestStreak, total, onRestart }: IFinishedScreenProps) => {
+export const FinishedScreen = ({ xp, hits, misses, bestStreak, total, onRestart, onChangeLevel }: IFinishedScreenProps) => {
   const { data: profile } = useGetProfile();
   const attempts = hits + misses;
   const accuracy = attempts ? Math.round((hits / attempts) * 100) : 0;
@@ -31,9 +32,14 @@ export const FinishedScreen = ({ xp, hits, misses, bestStreak, total, onRestart 
 
       {profile && <p className="total-xp">XP acumulado: {profile.xpTotal}</p>}
 
-      <button className="cta" onClick={onRestart} autoFocus>
-        Jogar de novo
-      </button>
+      <div className="finished-actions">
+        <button className="cta" onClick={onRestart} autoFocus>
+          Jogar de novo
+        </button>
+        <button className="link-btn" onClick={onChangeLevel}>
+          Trocar de nível
+        </button>
+      </div>
     </div>
   );
 };

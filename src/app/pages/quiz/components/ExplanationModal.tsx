@@ -3,7 +3,7 @@ import { useEffect, useRef } from "react";
 import { CheckIcon, XIcon } from "./Icons";
 import { useGetExplanation } from "../hooks/useQuiz";
 import { errorResponse } from "../../../shared/utils/errorResponse";
-import type { IAnswerResult, IQuestion } from "../../../shared/services/api/quiz";
+import { isSequencia, type IAnswerResult, type IQuestion } from "../../../shared/services/api/quiz";
 
 interface IExplanationModalProps {
   question: IQuestion;
@@ -16,7 +16,27 @@ interface IExplanationModalProps {
 export const ExplanationModal = ({ question, result, selected, onClose }: IExplanationModalProps) => {
   const { data, isLoading, isError, error, refetch } = useGetExplanation(question.id, true);
   const closeRef = useRef<HTMLButtonElement>(null);
-  const isSequence = question.tipo === "ordenar";
+  const isSequence = isSequencia(question.tipo);
+  const tipo = question.tipo;
+  const rotulo = (pos: number) => question.rotulos?.[pos - 1] ?? "";
+
+  /** título da lista de alternativas, por tipo */
+  const listTitle =
+    tipo === "ordenar"
+      ? "Passo a passo"
+      : tipo === "lacuna"
+        ? "Lacuna por lacuna"
+        : tipo === "associar"
+          ? "Par por par"
+          : "Alternativa por alternativa";
+
+  /** como mostrar onde o usuário colocou o bloco */
+  const placedTag = (pos: number) =>
+    tipo === "lacuna" ? `você pôs na lacuna ${pos}` : tipo === "associar" ? `você ligou a ${rotulo(pos)}` : `você pôs em ${pos}º`;
+
+  /** prefixo do texto do bloco correto (lacuna N / rótulo →) */
+  const correctPrefix = (pos?: number) =>
+    !pos ? "" : tipo === "lacuna" ? `Lacuna ${pos}: ` : tipo === "associar" ? `${rotulo(pos)} → ` : "";
 
   useEffect(() => {
     closeRef.current?.focus();
@@ -79,7 +99,7 @@ export const ExplanationModal = ({ question, result, selected, onClose }: IExpla
               </section>
 
               <section className="explain-block">
-                <h3>{isSequence ? "Passo a passo" : "Alternativa por alternativa"}</h3>
+                <h3>{listTitle}</h3>
                 <ul className="alt-list">
                   {data.alternativas.map((alt) => {
                     const chosen = selected.includes(alt.idOpcao);
@@ -93,11 +113,10 @@ export const ExplanationModal = ({ question, result, selected, onClose }: IExpla
                         </span>
                         <div className="alt-text">
                           <strong>
+                            {correctPrefix(alt.posicao)}
                             {alt.texto}
                             {chosen && (
-                              <span className="chosen-tag">
-                                {isSequence ? `você pôs em ${yourPosition(alt.idOpcao)}º` : "sua escolha"}
-                              </span>
+                              <span className="chosen-tag">{isSequence ? placedTag(yourPosition(alt.idOpcao)) : "sua escolha"}</span>
                             )}
                             {isSequence && !alt.posicao && <span className="extra-tag">não entra</span>}
                           </strong>

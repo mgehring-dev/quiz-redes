@@ -9,18 +9,30 @@ export interface IQuestionOption {
 /**
  * - unica: uma alternativa correta
  * - multipla: marque todas as corretas (perguntas de "cite / dê exemplos")
+ * - verdadeiro_falso: julgue a afirmação
  * - ordenar: monte a sequência na ordem certa (fluxos e handshakes)
+ * - lacuna: complete a frase; o enunciado traz "___" em cada lacuna
+ * - associar: ligue cada rótulo (à esquerda) a uma opção do banco
  */
-export type TTipoPergunta = "unica" | "multipla" | "ordenar";
+export type TTipoPergunta = "unica" | "multipla" | "verdadeiro_falso" | "ordenar" | "lacuna" | "associar";
+
+export type TDificuldade = "facil" | "dificil";
+
+/** tipos em que a resposta é uma sequência de blocos (a ordem importa) */
+export const TIPOS_SEQUENCIA: TTipoPergunta[] = ["ordenar", "lacuna", "associar"];
+export const isSequencia = (tipo: TTipoPergunta) => TIPOS_SEQUENCIA.includes(tipo);
 
 export interface IQuestion {
   id: number;
   tipo: TTipoPergunta;
+  dificuldade: TDificuldade;
   topico: string;
   enunciado: string;
   opcoes: IQuestionOption[];
-  /** só em "ordenar": quantos blocos compõem a resposta */
+  /** tipos de sequência: quantos blocos compõem a resposta */
   qtdItens?: number;
+  /** só em "associar": itens fixos da esquerda, na ordem dos pares */
+  rotulos?: string[];
 }
 
 export interface IPostAnswer {

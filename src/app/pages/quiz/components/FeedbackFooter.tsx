@@ -2,10 +2,44 @@ import { useLayoutEffect, useMemo, useRef } from "react";
 
 import { BookIcon, CheckIcon, XIcon } from "./Icons";
 import { useGetExplanation } from "../hooks/useQuiz";
-import type { IAnswerResult, IQuestion } from "../../../shared/services/api/quiz";
+import type { IAnswerResult, IQuestion, TTipoPergunta } from "../../../shared/services/api/quiz";
 import type { TGameStatus } from "../hooks/useQuizGame";
 
 const PRAISES = ["Mandou bem!", "Perfeito!", "Isso aí!", "Excelente!", "Muito bem!"];
+
+const IDLE: Record<TTipoPergunta, string> = {
+  unica: "Selecione uma resposta",
+  multipla: "Marque todas as corretas",
+  verdadeiro_falso: "Verdadeiro ou falso?",
+  ordenar: "Monte a sequência",
+  lacuna: "Complete as lacunas",
+  associar: "Associe os pares",
+};
+
+const WRONG_LABEL: Record<TTipoPergunta, string> = {
+  unica: "Resposta correta:",
+  multipla: "Respostas corretas:",
+  verdadeiro_falso: "Resposta correta:",
+  ordenar: "Sequência correta:",
+  lacuna: "Frase correta:",
+  associar: "Pares corretos:",
+};
+
+/** resposta correta em texto, no formato de cada tipo */
+function formatAnswer(question: IQuestion, textos: string[]): string {
+  switch (question.tipo) {
+    case "ordenar":
+      return textos.join(" → ");
+    case "lacuna": {
+      const parts = question.enunciado.split("___");
+      return parts.map((p, i) => p + (i < textos.length ? textos[i] : "")).join("");
+    }
+    case "associar":
+      return (question.rotulos ?? []).map((r, i) => `${r} → ${textos[i]}`).join(" · ");
+    default:
+      return textos.join(" · ");
+  }
+}
 
 interface IFeedbackFooterProps {
   status: TGameStatus;
@@ -39,10 +73,9 @@ export const FeedbackFooter = ({ status, result, question, canCheck, error, turn
   useGetExplanation(question.id, answered);
   const tone = answered ? (result!.correta ? "correct" : "wrong") : "";
   const textById = Object.fromEntries(question.opcoes.map((o) => [o.id, o.texto]));
-  const separator = question.tipo === "ordenar" ? " → " : " · ";
-  const correctText = answered ? result!.idOpcoesCorretas.map((id) => textById[id]).join(separator) : "";
-  const idleText =
-    question.tipo === "ordenar" ? "Monte a sequência" : question.tipo === "multipla" ? "Marque todas as corretas" : "Selecione uma resposta";
+  const correctText = answered ? formatAnswer(question, result!.idOpcoesCorretas.map((id) => textById[id])) : "";
+  const idleText = IDLE[question.tipo];
+  const wrongLabel = WRONG_LABEL[question.tipo];
 
   return (
     <footer ref={footerRef} className={`footer ${tone}`}>
@@ -52,13 +85,7 @@ export const FeedbackFooter = ({ status, result, question, canCheck, error, turn
             <div className="badge">{result!.correta ? <CheckIcon /> : <XIcon />}</div>
             <div>
               <strong>
-                {result!.correta
-                  ? praise
-                  : question.tipo === "ordenar"
-                    ? "Sequência correta:"
-                    : question.tipo === "multipla"
-                      ? "Respostas corretas:"
-                      : "Resposta correta:"}
+                {result!.correta ? praise : wrongLabel}
               </strong>
               {!result!.correta && <p className="answer">{correctText}</p>}
               <p className="explain">{result!.explicacao}</p>

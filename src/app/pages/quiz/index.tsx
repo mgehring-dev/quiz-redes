@@ -1,4 +1,6 @@
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
+
+import { LevelScreen, type TNivel } from "./components/LevelScreen";
 
 import { useGetQuestions } from "./hooks/useQuiz";
 import { useQuizGame } from "./hooks/useQuizGame";
@@ -8,10 +10,20 @@ import { FeedbackFooter } from "./components/FeedbackFooter";
 import { FinishedScreen } from "./components/FinishedScreen";
 import { ExplanationModal } from "./components/ExplanationModal";
 import { errorResponse } from "../../shared/utils/errorResponse";
-import type { IQuestion } from "../../shared/services/api/quiz";
+import { isSequencia, type IQuestion } from "../../shared/services/api/quiz";
 
 export const QuizPage = () => {
   const { data, isLoading, isError, error, refetch } = useGetQuestions();
+  // em desenvolvimento, ?pergunta=ID pula a escolha de nível
+  const [nivel, setNivel] = useState<TNivel | null>(() =>
+    import.meta.env.DEV && new URLSearchParams(window.location.search).get("pergunta") ? "todas" : null,
+  );
+  const [rodada, setRodada] = useState(0);
+
+  const filtered = useMemo(
+    () => (!data || !nivel ? [] : nivel === "todas" ? data : data.filter((q) => q.dificuldade === nivel)),
+    [data, nivel],
+  );
 
   if (isLoading) return <LoadingState />;
   if (isError || !data) {
@@ -24,10 +36,21 @@ export const QuizPage = () => {
       </div>
     );
   }
-  return <QuizGame questions={data} />;
+  if (!nivel) {
+    return (
+      <LevelScreen
+        questions={data}
+        onChoose={(n) => {
+          setNivel(n);
+          setRodada((r) => r + 1);
+        }}
+      />
+    );
+  }
+  return <QuizGame key={`${nivel}-${rodada}`} questions={filtered} onExit={() => setNivel(null)} />;
 };
 
-const QuizGame = ({ questions }: { questions: IQuestion[] }) => {
+const QuizGame = ({ questions, onExit }: { questions: IQuestion[]; onExit: () => void }) => {
   const { state, current, isRevisao, total, canCheck, pick, unplace, check, next, restart } = useQuizGame(questions);
   const [xpPopKey, setXpPopKey] = useState(0);
   const [explainOpen, setExplainOpen] = useState(false);
@@ -56,7 +79,7 @@ const QuizGame = ({ questions }: { questions: IQuestion[] }) => {
         else if (state.status === "answered") next();
         return;
       }
-      if (e.key === "Backspace" && current?.tipo === "ordenar" && state.selected.length) {
+      if (e.key === "Backspace" && current && isSequencia(current.tipo) && state.selected.length) {
         unplace(state.selected.length - 1);
         return;
       }
@@ -76,6 +99,7 @@ const QuizGame = ({ questions }: { questions: IQuestion[] }) => {
         bestStreak={state.bestStreak}
         total={total}
         onRestart={restart}
+        onChangeLevel={onExit}
       />
     );
   }
@@ -88,7 +112,7 @@ const QuizGame = ({ questions }: { questions: IQuestion[] }) => {
         xp={state.xp}
         xpPopKey={xpPopKey}
         xpPop={state.result?.xpGanho ?? 0}
-        onRestart={restart}
+        onRestart={onExit}
       />
       <QuestionCard
         key={state.turn}
