@@ -1,0 +1,44 @@
+name: Avisar no Teams
+
+# A Vercel publica o status de cada deploy no GitHub (deployment_status).
+# Quando o deploy termina (sucesso ou falha), posta um cartão no Teams.
+on: deployment_status
+
+permissions:
+  contents: read
+
+jobs:
+  notify:
+    if: contains(fromJSON('["success","failure","error"]'), github.event.deployment_status.state)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          sparse-checkout: .github/scripts
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      - name: Buscar dados do commit
+        id: commit
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          {
+            echo "message<<EOF"
+            gh api "repos/${{ github.repository }}/commits/${{ github.event.deployment.sha }}" --jq '.commit.message'
+            echo "EOF"
+          } >> "$GITHUB_OUTPUT"
+
+      - name: Postar no Teams
+        env:
+          TEAMS_WEBHOOK_URL: ${{ secrets.TEAMS_WEBHOOK_URL }}
+          STATE: ${{ github.event.deployment_status.state }}
+          REF: ${{ github.event.deployment.ref }}
+          SHA: ${{ github.event.deployment.sha }}
+          ENV_NAME: ${{ github.event.deployment.environment }}
+          TARGET_URL: ${{ github.event.deployment_status.environment_url || github.event.deployment_status.target_url }}
+          LOG_URL: ${{ github.event.deployment_status.log_url || github.event.deployment_status.target_url }}
+          COMMIT_MESSAGE: ${{ steps.commit.outputs.message }}
+        run: node .github/scripts/notify-teams.mjs
